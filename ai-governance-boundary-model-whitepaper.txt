@@ -1,0 +1,205 @@
+AI Liaison (Advisory Class)
+
+Overview
+
+AI Liaison is a read-only advisory microservice designed to assist human operators in interpreting existing system reports.
+
+It converts pre-generated, human-readable .txt reports into concise, non-authoritative summaries using an external Large Language Model (LLM) API.
+
+This module does not participate in system decision-making, automation control, or execution logic.
+Its sole purpose is to reduce human cognitive load when reviewing system evidence.
+
+Design Intent
+
+AI Liaison is intentionally designed as an optional, disposable, and non-critical component.
+
+Key principles:
+
+Advisory only — never authoritative
+
+Read-only — no system mutation
+
+Non-blocking — safe to skip or remove
+
+Graceful failure — exits silently on any error
+
+The system must remain fully correct and operational whether this module runs successfully, fails, or does not exist at all.
+
+Responsibilities
+What This Module Does
+
+Reads existing .txt reports from the reports/ directory
+
+Selects the most recent report deterministically
+
+Summarizes notable signals using cautious, non-directive language
+
+Writes AI-generated commentary to a dedicated output location
+
+What This Module Does Not Do
+
+❌ Make decisions or judgments
+
+❌ Provide action steps or operational instructions
+
+❌ Modify, delete, or generate system data
+
+❌ Trigger alerts, tasks, or automation
+
+❌ Validate or invalidate other reports
+
+❌ Participate in any control loop
+
+Any attempt to expand this module beyond these boundaries violates its design contract.
+
+Architecture Position
+
+AI Liaison exists outside the system’s reliability and execution layers.
+
+[ Fact Generation ] → [ Human-Readable Reports ] → [ AI Liaison ] → [ Human Review ]
+
+
+Facts are produced elsewhere
+
+Reports are already finalized before AI Liaison runs
+
+AI output is informational only and never fed back into the system
+
+Input Constraints
+
+Source: reports/ directory
+
+File type: .txt only
+
+Data size: Hard-limited to KB scale (content is truncated if exceeded)
+
+No structured data ingestion (JSON, CSV, binaries are ignored)
+
+This ensures the AI only sees summarized evidence, not raw system state.
+
+Output
+Location
+reports/
+└── AI_Insight/
+    └── ai_insight.txt
+
+Output Characteristics
+
+Plain text
+
+Explicitly labeled as AI-generated
+
+Includes a non-authoritative disclaimer
+
+Designed for human reading only
+
+Every output file begins with a mandatory disclaimer:
+
+[AI-GENERATED ADVISORY TEXT]
+
+This file is non-authoritative.
+It does NOT represent system state, facts, or decisions.
+Human review is required.
+
+Failure Behavior (Critical)
+
+AI Liaison follows a Graceful Exit policy.
+
+If any of the following occur:
+
+Missing API key
+
+Network unavailable
+
+API timeout or error
+
+Invalid or empty report
+
+Dependency missing
+
+Then the module will:
+
+Exit immediately with status code 0
+
+Produce no output
+
+Block nothing
+
+Affect nothing else
+
+Failure of this module is explicitly not an error condition for the system.
+
+Dependencies
+
+Python 3.x
+
+requests (external library)
+
+Dependency handling policy:
+
+No automatic installation
+
+No environment modification
+
+If a dependency is unavailable, the module exits silently
+
+This preserves predictability and avoids unintended side effects in restricted environments.
+
+Security & Safety Notes
+
+API keys are read from environment variables only
+
+No credentials are stored in code or output
+
+No user input is accepted
+
+No execution privileges are required
+
+AI Liaison is safe to run in locked-down, non-privileged environments.
+
+Anti-Creep Policy (Important)
+
+The following changes are explicitly forbidden without a full system redesign:
+
+Converting AI output into structured data
+
+Feeding AI output back into automation
+
+Using AI output as a decision signal
+
+Allowing AI to trigger alerts or actions
+
+Elevating AI output to “recommendations”
+
+If any of these are required, AI Liaison must be considered the wrong tool.
+
+Removal Policy
+
+AI Liaison is intentionally disposable.
+
+You can:
+
+Disable it
+
+Delete it
+
+Ignore its output
+
+…without affecting system correctness.
+
+This is by design.
+
+Summary
+
+AI Liaison exists to answer one question only:
+
+“Can we make existing system evidence easier for humans to understand — without increasing system risk?”
+
+If the answer ever becomes “no”, this module should not run.
+
+Status:
+Stable (Advisory Class)
+Non-critical
+
+Optional
+Human-reviewed only
